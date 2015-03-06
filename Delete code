@@ -1,0 +1,28 @@
+/*
+			 * if (str.charAt(0) != '(') { // atomic s-expression if
+			 * (!testAtomic(str)) { System.out.println(message.toString());
+			 * message.delete(9, message.length()); } else { // print correct
+			 * result atomicNode(str); } } else {
+			 * System.out.println("String after whitespace :" + str); // non -
+			 * atomic s-expression while (str.length() != 0) {
+			 * buildNodeTree(str); } }
+			 */
+			 
+			 	/*
+	 * occurence of first character
+	 */
+	/*
+	 * public static int findFirst(String str, char c) { int loc = 0; for (int i
+	 * = 0; i < str.length(); i++) { if (str.charAt(i) == c) { loc = i; break; }
+	 * } return loc; }
+	 */
+
+	/*
+	 * occurence of last character
+	 */
+	/*
+	 * public static int findLast(String str, char c) { int loc = 0; for (int i
+	 * = str.length(); i >= 0; i--) { if (str.charAt(i) == c) { loc = i; break;
+	 * } } return loc; }
+	 */
+			 

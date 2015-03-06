@@ -1,0 +1,37 @@
+***************** Design and documentation of LISP interpreter ************
+
+First Part of the interpreter is about processing the user input and 
+converting it into S-Expression.
+
+In my Design I have 3 classes, 
+a. User Input: It basically reads user input from the console.It reads it line by line
+and looks for '$' and '$$' in new line to perform explicit actions.Since it reads 
+multiple strings from console and does string concatenation every time, therefore I 
+have used StringBuilder to efficiency purposes (As otherwise just doing string 
+concatenation might lead to more garbage objects).Once it finds a "$" it sends the created
+string object to Process Data for processing.And if the input is "$$", it exits the 
+interpreter.
+
+b. Process Data:Here i would be using regex to match against my different input cases.
+Also it has a static string class variable as 
+
+Error cases:
+1.Replacing all the multiple white spaces with just one space
+2.Matching all the opening and closing parentheses.
+
+Next i am checking for,
+1.atomic: Checking for integers,identifiers.Below are the erroneous checks
+a. integer containing any garbage letter.
+b. invalid identifier. 
+
+2.non-atomic expression
+1.
+
+c. SExp:
+
+Below is the flow of the classes.
+
+User Input -----------> Process Data ---------------> SExp (S expression)
+
+
+
