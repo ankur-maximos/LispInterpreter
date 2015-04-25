@@ -23,58 +23,66 @@ public class ProcessData {
 	 *            String containing the contents of a list
 	 * @return
 	 */
-	public static SExp constructTreeList(String str) {
+	public static SExp constructTreeList(String str, boolean level) {
 		SExp sexp = new SExp();
-		if (str.matches("^(\\()+ ?(\\w)+ ?\\..*\\)$")) {
-			if (!checkSExpression(str)) {
-				return sexp;
-			}
-			String temp[] = str.substring(1, str.length() - 1).trim()
-					.split("\\.", 2);
-			if (temp[0].isEmpty() || temp[1].isEmpty()) {
-				errorFlag = true;
-				message.append(Constants.EMPTY_DOT_EXP);
-				return sexp;
+		str = str.trim();
+		int i = checkExpression(str.trim());
+		if (i == 1) {
+			int loc = findLoc(str);
+			str = str.substring(1, str.length() - 1).trim();
+			sexp.type = 3;
+			String temp = str.substring(0, loc).trim();
+			if (checkExpression(temp) == 0) {
+				sexp.left = atomicNode(temp);
 			} else {
-				sexp.type = 3;
-				sexp.left = constructTreeList(temp[0].trim());
-				sexp.right = constructTreeList(temp[1].trim());
+				sexp.left = constructTreeList(temp, false);
 			}
-		} else if (str.matches("^\\(.*\\)")) {
-			sexp.type = 3;
-			sexp.right = atomicNode("");
-			sexp.left = constructTreeList(str.substring(1, str.length() - 1)
-					.trim());
-		} else if (str.isEmpty()) {
-			sexp.type = 3;
-			sexp.right = atomicNode("");
-			sexp.left = atomicNode("");
-		} else if (!str.contains(" ")) {
+			String temp1 = str.substring(loc + 1).trim();
+			if (checkExpression(temp1) == 0) {
+				sexp.right = atomicNode(temp1);
+			} else {
+				sexp.right = constructTreeList(temp1, false);
+			}
+		} else if (i == 0) {
 			if (testAtomic(str)) {
 				sexp = atomicNode(str);
 			} else {
 				return sexp;
 			}
-		} else {
-			String temp[] = str.split(" ", 2);
-			if (testAtomic(temp[0])) {
+		} else if (i == 2 && str.charAt(0) == '(') {
+			int loc = findLoc(str);
+			str = str.substring(1, str.length() - 1).trim();
+			if (loc == -1) {
 				sexp.type = 3;
-				sexp.left = atomicNode(temp[0]);
+				sexp.right = atomicNode("");
+				if (checkExpression(str) == 0) {
+					sexp.left = atomicNode(str);
+				} else {
+					sexp.left = constructTreeList(str, false);
+				}
 			} else {
+				sexp.type = 3;
+				String temp = str.substring(0, loc).trim();
+				if (checkExpression(temp) == 0) {
+					sexp.left = atomicNode(temp);
+				} else {
+					sexp.left = constructTreeList(temp, false);
+				}
+				String temp1 = "(" + str.substring(loc + 1) + ")";
+				sexp.right = constructTreeList(temp1, false);
+			}
+			if (str.isEmpty()) {
+				sexp.type = 3;
+				sexp.right = atomicNode("");
+				sexp.left = atomicNode("");
 				return sexp;
 			}
-			if (temp.length == 2) {
-				sexp.right = constructTreeList(temp[1].trim());
-			} else {
-				sexp.right = atomicNode("");
-			}
+		} else {
+			errorFlag = true;
+			message.delete(9, message.length());
+			message.append(Constants.INVALID_SEXP);
 		}
 		return sexp;
-	}
-
-	public static SExp buildNode(String left, String right, String type) {
-		SExp sexp = new SExp();
-		return null;
 	}
 
 	/**
@@ -87,8 +95,8 @@ public class ProcessData {
 	 */
 	public static boolean checkSExpression(String str) {
 		boolean result = true;
-		int loc = str.indexOf(".");
-		str = str.substring(loc + 1, str.length() - 1).trim();
+		if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')')
+			str = str.substring(1, str.length() - 1).trim();
 		int dotCount = 0;
 		if (str.isEmpty()) {
 			result = false;
@@ -103,6 +111,7 @@ public class ProcessData {
 				}
 				if (str.charAt(i) == '(') {
 					int temp = 1;
+					i++;
 					for (; i < str.length(); i++) {
 						if (str.charAt(i) == ')') {
 							temp--;
@@ -118,11 +127,11 @@ public class ProcessData {
 					} else {
 						if (i < str.length() - 1 && str.charAt(i + 1) == '.') {
 							dotCount++;
-							i += 2;
+							i += 1;
 						} else if (i < str.length() - 2
 								&& str.charAt(i + 2) == '.') {
 							dotCount++;
-							i += 3;
+							i += 2;
 						}
 						if (dotCount > 1) {
 							result = false;
@@ -131,30 +140,30 @@ public class ProcessData {
 					}
 				} else {
 					String token = "";
-					while (str.charAt(i) != '.' || i < str.length()) {
+					while (i < str.length() && str.charAt(i) != '.') {
 						token += str.charAt(i);
 						i++;
 					}
-					if (!testAtomic(str.trim())) {
+					if (!testAtomic(token.trim())) {
 						result = false;
 						break;
 					} else {
-						if (str.charAt(i) == '.')
+						if (i < str.length() && str.charAt(i) == '.') {
 							dotCount++;
+						}
 						if (dotCount > 1) {
 							result = false;
 							break;
 						}
-						i++;
 					}
 				}
 			}
 		}
 		if (!result) {
 			errorFlag = true;
-			message.delete(0, message.length());
+			message.delete(9, message.length());
 			if (dotCount > 1) {
-				message.append(Constants.INVALID_SEXP + Constants.EMPTY_DOT_EXP);
+				message.append(Constants.INVALID_SEXP + Constants.EXTRA_DOTS);
 			} else
 				message.append(Constants.INVALID_SEXP);
 		}
@@ -170,42 +179,54 @@ public class ProcessData {
 	 */
 	public static boolean checkList(String str) {
 		boolean result = true;
-		str = str.substring(1, str.length() - 1);
+		if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')')
+			str = str.substring(1, str.length() - 1).trim();
+
 		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == ' ') {
+				continue;
+			}
 			if (str.charAt(i) == '(') {
 				int temp = 1;
-				int j = i + 1;
-				for (; j < str.length(); j++) {
-					if (str.charAt(j) == ')') {
+				i++;
+				for (; i < str.length(); i++) {
+					if (str.charAt(i) == ')') {
 						temp--;
-					} else if (str.charAt(j) == '(') {
+					} else if (str.charAt(i) == '(') {
 						temp++;
 					}
 					if (temp == 0) {
 						break;
 					}
 				}
-				if (j != str.length() - 1 && str.charAt(j + 1) != ' ') {
+				if (temp != 0) {
 					result = false;
 					break;
-				}
-				if (j != str.length() - 1) {
-					j++;
+				} else {
+					if (i < str.length() - 1 && str.charAt(i + 1) != ' ') {
+						result = false;
+						break;
+					} else
+						i++;
 				}
 			} else {
 				String token = "";
-				while (str.charAt(i) != ' ') {
+				while (i < str.length() && str.charAt(i) != ' ') {
 					token += str.charAt(i);
 					i++;
 				}
-				if (testAtomic(token)) {
-					i++;
-				} else {
+				if (!testAtomic(token.trim())) {
 					result = false;
 					break;
+				} else {
+					if (i < str.length() && str.charAt(i) != ' ') {
+						result = false;
+						break;
+					}
 				}
 			}
 		}
+
 		if (!result) {
 			errorFlag = true;
 			message.delete(9, message.length());
@@ -225,68 +246,144 @@ public class ProcessData {
 	 */
 	public static int checkExpression(String str) {
 		int result = -1;
-		if (!matchParentheses(str))
+		if (str.isEmpty()) {
 			return result;
-		if (str.charAt(0) == '(') {
-			String tempStr = str.substring(1, str.length() - 1);
+		} else if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')') {
+			String tempStr = str.substring(1, str.length() - 1).trim();
+			if (tempStr.isEmpty()) {
+				result = 0;
+				return result;
+			}
 			if (tempStr.charAt(0) == '(') {
 				int temp = 1;
 				int i = 1;
-				for (; i < str.length(); i++) {
-					if (str.charAt(i) == ')') {
+				for (; i < tempStr.length(); i++) {
+					if (tempStr.charAt(i) == ')') {
 						temp--;
-					} else if (str.charAt(i) == '(') {
+					} else if (tempStr.charAt(i) == '(') {
 						temp++;
 					}
 					if (temp == 0) {
 						break;
 					}
 				}
-				if (str.charAt(i + 1) == '.' || str.charAt(i + 2) == '.') {
-					if (checkList(str)) {
+				if (i < tempStr.length() - 1 && tempStr.charAt(i + 1) == '.'
+						|| i < tempStr.length() - 2
+						&& tempStr.charAt(i + 2) == '.') {
+					if (checkSExpression(str)) {
 						result = 1;
 					} else
 						result = -1;
-				} else if (str.charAt(i + 1) == ' ') {
-
+				} else if (i < tempStr.length() - 1
+						&& tempStr.charAt(i + 1) == ' ') {
+					if (checkList(str)) {
+						result = 2;
+					} else
+						result = -1;
+				} else if (i > 0) {
+					result = 2;
 				}
-			} else if (testAtomic(str)) {
-
+			} else {
+				String token = "";
+				int i = 0;
+				while (i < tempStr.length() && tempStr.charAt(i) != ' '
+						&& tempStr.charAt(i) != '.') {
+					token += tempStr.charAt(i);
+					i++;
+				}
+				if (!testAtomic(token)) {
+					result = -1;
+				} else {
+					if (i < tempStr.length() && tempStr.charAt(i) == '.'
+							|| i < tempStr.length() - 1
+							&& tempStr.charAt(i + 1) == '.') {
+						if (checkSExpression(str)) {
+							result = 1;
+						} else
+							result = -1;
+					} else if (i < tempStr.length() && tempStr.charAt(i) == ' ') {
+						if (checkList(str)) {
+							result = 2;
+						} else
+							result = -1;
+					} else if (i > 0) {
+						result = 2;
+					}
+				}
 			}
 		} else if (testAtomic(str)) {
 			result = 0;
-		}
-		if() {
-			
 		}
 		return result;
 	}
 
 	/**
-	 * Method to match string with appropriate dot or list expression
+	 * This method finds the first location of '.' or ' ' in the string passed
 	 * 
 	 * @param str
-	 * @return
+	 *            input string
+	 * @return location of the whitespace or '.' -2 illegal,-1 last element in
+	 *         S-Expression
 	 */
-	/*
-	 * public static String matchString(String str) { return null; }
-	 */
-
-	/**
-	 * Method which will take string and convert it into
-	 * 
-	 * @param str
-	 * @return
-	 */
-
-	public static SExp buildNodeTree(String str) {
-		SExp sexp = new SExp();
-		if (!str.matches("^\\( ?(\\w)+ ?\\..*\\)$")
-				&& str.matches("^\\(.*\\)$")) {
-			str = str.substring(1, str.length() - 1).trim();
+	public static int findLoc(String str) {
+		int result = -2;
+		if (str.isEmpty()) {
+			return result;
 		}
-		sexp = constructTreeList(str);
-		return sexp;
+		if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')') {
+			String tempStr = str.substring(1, str.length() - 1).trim();
+			if (tempStr.isEmpty()) {
+				result = 0;
+				return result;
+			}
+			if (tempStr.charAt(0) == '(') {
+				int temp = 1;
+				int i = 1;
+				for (; i < tempStr.length(); i++) {
+					if (tempStr.charAt(i) == ')') {
+						temp--;
+					} else if (tempStr.charAt(i) == '(') {
+						temp++;
+					}
+					if (temp == 0) {
+						break;
+					}
+				}
+				if (i < tempStr.length() - 1 && tempStr.charAt(i + 1) == '.') {
+					result = i + 1;
+				} else if (i < tempStr.length() - 2
+						&& tempStr.charAt(i + 2) == '.') {
+					result = i + 2;
+				} else if (i < tempStr.length() - 1
+						&& tempStr.charAt(i + 1) == ' ') {
+					result = i + 1;
+				} else if (i > 0) {
+					result = -1;
+				}
+			} else {
+				String token = "";
+				int i = 0;
+				while (i < tempStr.length() && tempStr.charAt(i) != ' '
+						&& tempStr.charAt(i) != '.') {
+					token += tempStr.charAt(i);
+					i++;
+				}
+				if (testAtomic(token)) {
+					if (i < tempStr.length() && tempStr.charAt(i) == '.') {
+						result = i;
+					} else if (i < tempStr.length() - 1
+							&& tempStr.charAt(i + 1) == '.') {
+						result = i + 1;
+					} else if (i < tempStr.length() - 1
+							&& tempStr.charAt(i) == ' ') {
+						result = i;
+					} else if (i > 0) {
+						result = -1;
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -329,8 +426,15 @@ public class ProcessData {
 	 */
 	public static Boolean testAtomic(String str) {
 		Boolean result = true;
-		if (str.charAt(0) >= 65 && str.charAt(0) <= 90) {
-			result = str.matches("[A-Z][A-Z|0-9]+");
+		if (str.isEmpty()) {
+			result = false;
+		} else if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')') {
+			str = str.substring(1, str.length() - 1).trim();
+			if (str.isEmpty()) {
+				result = true;
+			}
+		} else if (str.charAt(0) >= 65 && str.charAt(0) <= 90) {
+			result = str.matches("[A-Z][A-Z|0-9]*");
 		} else {
 			if (!testInteger(str)) {
 				result = false;
@@ -338,7 +442,7 @@ public class ProcessData {
 		}
 		if (!result) {
 			errorFlag = true;
-			message.append(Constants.INVALID_ATOM + " :" + str);
+			message.append(Constants.INVALID_ATOM);
 		}
 		return result;
 	}
@@ -382,9 +486,15 @@ public class ProcessData {
 	public static SExp atomicNode(String str) {
 		SExp sexp = new SExp();
 		if (str.isEmpty()) {
-			str = "NIL";
-		}
-		if (str.charAt(0) >= 65 && str.charAt(0) <= 90) {
+			sexp.type = 2;
+			sexp.name = "NIL";
+		} else if (str.charAt(0) == '(' && str.charAt(str.length() - 1) == ')') {
+			str = str.substring(1, str.length() - 1).trim();
+			if (str.isEmpty()) {
+				sexp.type = 2;
+				sexp.name = "NIL";
+			}
+		} else if (str.charAt(0) >= 65 && str.charAt(0) <= 90) {
 			sexp.type = 2;
 			sexp.name = str;
 		} else {
@@ -407,7 +517,7 @@ public class ProcessData {
 			return sexp;
 		} else {
 			str = replaceWhiteSpace(str.trim());
-			sexp = buildNodeTree(str);
+			sexp = constructTreeList(str, true);
 		}
 		return sexp;
 	}

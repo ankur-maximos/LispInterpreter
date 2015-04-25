@@ -1,9 +1,10 @@
-***************** Design and documentation of LISP interpreter ************
+*********************** Design and documentation of LISP interpreter *******************************
 
 First Part of the interpreter is about processing the user input and 
 converting it into S-Expression.
 
 In my Design I have 3 classes, 
+
 a. User Input: It basically reads user input from the console.It reads it line by line
 and looks for '$' and '$$' in new line to perform explicit actions.Since it reads 
 multiple strings from console and does string concatenation every time, therefore I 
@@ -12,26 +13,68 @@ concatenation might lead to more garbage objects).Once it finds a "$" it sends t
 string object to Process Data for processing.And if the input is "$$", it exits the 
 interpreter.
 
-b. Process Data:Here i would be using regex to match against my different input cases.
-Also it has a static string class variable as 
+b. Process Data: Here i am parsing my input and it has many helping static function for me 
+which i created.These functions might be helpful for 2nd part of the Interpreter project.
+Below are few of the functions it achieves:
 
-Error cases:
 1.Replacing all the multiple white spaces with just one space
 2.Matching all the opening and closing parentheses.
-
-Next i am checking for,
-1.atomic: Checking for integers,identifiers.Below are the erroneous checks
+3.Checking for atomic S-Expression: Checking for integers,identifiers.Below are the basic erroneous checks:
 a. integer containing any garbage letter.
-b. invalid identifier. 
+b. invalid identifier.(lowercase alphabets are illegal).
+4.Checking for non-atomic S-expression and list.Below are few of the functions of the methods in this class.
+a.checking for S-expressions
+b.Checking for list.
+c.Checking for both kinds of expression.
+d.Other helper methods.e.g:testing atomic identifiers,matching parenthesis etc.
 
-2.non-atomic expression
-1.
-
-c. SExp:
+c. SExp:This is the class which contains class variables related to S-Expression.
 
 Below is the flow of the classes.
 
 User Input -----------> Process Data ---------------> SExp (S expression)
 
+***** Important points while running this interpreter
+1.My interpreter consider lowercase alphabets in identifiers as illegal according to the 
+Interpreter problem statements.
+2.This interpreter takes dollar($) in separate new line as a signal to process the input provided.
+3.This interpreter takes double dollar($$) as signal to exit the interpreter.
+4.Errors are all general and might have no specific details.Since my main focus was to 
+produce errors in case of illegal inputs.Also Neelam told he doesn't expect specific error 
+details.Also there is no limit to this non-functional requirement.
+
+----Hope this works well!
 
 
+**************************************  LISP interpreter Part 2 ************************************
+
+Here I am expecting a valid LISP Expression
+
+Modifications after part I:
+a.I modified the output part of my interpreter.So now s-expression results are printed in List notation
+wherever possible else it prints the dot notation.
+
+b.I created Evaluator class to evaluate Lisp Expression.So now the modified design looks like:
+
+User Input ------> Process Data -------> SExp (Lisp expression) --------> Evaluator --------> output
+
+c.Here also similar input conditions are applied.For example, all the symbols will be in Capital letters.
+
+d.With in the Evaluator, following are the primitive functions defined,
+CAR, CDR, ATOM, NULL, INT, COND, QUOTE, DEFUN, CONS, EQ, PLUS, MINUS, TIMES, QUOTIENT, REMAINDER,
+LESS,GREATER.
+
+e.The primitives are T,NIL.
+
+f.You can define your own custom application using below syntax
+(DEFUN F (X Y) fb)
+
+Here i am assuming no errors in the parameters.
+
+g.INPUT and OUTPUT
+INPUT : Valid Lisp Expression
+OUTPUT Format: 
+> Input Lisp Expression in List Notation of S-Expression
+output result  
+
+----Hope this works well!

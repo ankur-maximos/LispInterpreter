@@ -1,14 +1,42 @@
 45
+>45
+
 NIL
- (In case of empty string what should be output)??????????
- (.4) ???????????????????????????????????????????what error
+>NIL
+
 (SILLY 5 6)
+> (SILLY . (5 . (6 . NIL)))
+
+5 6
+**Error: Invalid Atom
+
 ( 2 . (3 4) . 5)
+**Error: Invalid S-Expression :Extra dots in S-Expression
+
+( 2 . (3 4) $ 5)
+**Error: Invalid S-Expression
+
+(-34 45)
+(-34 . (45 . NIL))
+
 ()
+$
+((2 3) 4 (5))
+$
+((2 . (3 . NIL)) . (4 . ((5 . NIL) . NIL)))
+$
+
+( 2 . (3 4))
+
 ())
 (())
-(-34 45)
+==========================================================================================
 
+Failing:
+
+(2 . ((3 . (4 . NIL)) . 5))
+( 2 (3 . 4) (5 . 6))
+(CAR (QUOTE (A . B)))
 
 (  ( a b c ) ( d e f ) (  ( g h ) ( i j ) ) )
 $
@@ -19,3 +47,69 @@ $
 (2 . ((3 . 4) . ((5 . 6) . NIL)))
 $
 **Error: Invalid Atom : Multiple dots in S-expression
+
+
+
+ (In case of empty string what should be output)??????????
+ (.4) ???????????????????????????????????????????what error
+ 
+ 
+ 
+ ==========================================================================================
+Part II testing
+
+(DEFUN SILLY (X) (QUOTE (2 . 3)))
+$
+> (DEFUN  X) (QUOTE (2 . 3)))
+Custom Function is sucessfullly added
+(SILLY (2.3))
+$
+> (SILLY (2 . 3))
+***ERROR :Invalid Lisp-Expression
+(SILLY (QUOTE(2.3))
+$
+**Error:  Opening parenthesis greater than Closing Parenthesis
+(SILLY (QUOTE(2.3)))
+$
+**Error:  Invalid S-Expression
+(SILLY (QUOTE (2.3)))
+$
+> (SILLY (QUOTE (2 . 3)))
+***ERROR :function or Parameter not found in alist
+
+(DEFUN SILLY (A B) (PLUS A B))
+
+(SILLY 1 3)
+
+
+(DEFUN SUM (A B) (PLUS A B))
+$
+> (DEFUN SUM (A B) (PLUS A B))
+Custom Function is sucessfullly added
+(DEFUN G (A B) (SUM A B))
+$
+> (DEFUN G (A B) (SUM A B))
+Custom Function is sucessfullly added
+(G 3 4)
+$
+> (G 3 4)
+***ERROR :function or Parameter not found in alist
+
+
+(DEFUN F (X) (G (QUOTE (PLUS X 1))))
+(DEFUN G (X) X)
+(F 0)
+
+
+(DEFUN F (X) (G (QUOTE (PLUS X 1))))
+***ERROR :function or Parameter not found in alist
+(DEFUN SUM (A B) (PLUS A B))
+$
+> (DEFUN SUM (A B) (PLUS A B))
+Custom Function is sucessfullly added
+(DEFUN G (A B) (SUM A B))
+$
+> (DEFUN G (A B) (SUM A B))
+***ERROR :Method is already defined
+(DEFUN K (A B) (SUM A B))
+$

@@ -1,0 +1,4 @@
+1.Go inside the directory and run below command
+make buildandrun
+2.Then run below command to execute the program
+java -classpath src LispInterpreter
