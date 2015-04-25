@@ -1,1 +1,6 @@
-Rimjim@12
+1.Checkout the project.
+2.Open terminal.
+3.Go inside the directory and run below command:
+make buildandrun
+4.Then run below command to execute the program:
+java -classpath src LispInterpreter
